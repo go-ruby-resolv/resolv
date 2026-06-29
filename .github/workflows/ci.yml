@@ -34,11 +34,13 @@ jobs:
           ruby-version: "3.4"
       - run: go version
       - run: go vet ./...
-      - run: go build ./...
+      # Confirm the library builds with cgo disabled (the arch lanes test the
+      # pure-Go binary); the race detector below needs cgo, so it runs with the
+      # default toolchain settings.
+      - run: CGO_ENABLED=0 go build ./...
+        shell: bash
       - name: Test + 100% coverage gate
         shell: bash
-        env:
-          CGO_ENABLED: "0"
         run: |
           COVERPKG=$(go list ./... | paste -sd, -)
           go test -race -coverpkg="$COVERPKG" -coverprofile=cover.out ./...
